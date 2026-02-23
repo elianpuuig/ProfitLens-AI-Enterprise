@@ -1,0 +1,13 @@
+# Secretos y Configuración
+.streamlit/secrets.toml
+.env
+
+# Bases de datos y archivos de datos
+*.db
+*.csv
+*.xlsx
+
+# Python
+__pycache__/
+venv/
+.venv/
