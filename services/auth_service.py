@@ -4,16 +4,32 @@ import firebase_admin
 from firebase_admin import credentials, firestore
 import os
 
-# 1. INICIALIZACIÓN (Fuera de la clase para que ocurra una sola vez)
-# RUTA CORRECTA SEGÚN TU INDICACIÓN
-ruta_llave = os.path.join("ClavePrivada", "claveFirebase.json")
-
+# --- 1. INICIALIZACIÓN INTELIGENTE ---
 if not firebase_admin._apps:
     try:
-        cred = credentials.Certificate(ruta_llave)
-        firebase_admin.initialize_app(cred)
+        # Opción A: Estamos en la nube (Streamlit Cloud)
+        if "firebase_service_account" in st.secrets:
+            # Convertimos los secretos a un diccionario de Python
+            creds_dict = dict(st.secrets["firebase_service_account"])
+            
+            # Limpieza técnica de la clave privada (asegura los saltos de línea)
+            if "\\n" in creds_dict["private_key"]:
+                creds_dict["private_key"] = creds_dict["private_key"].replace("\\n", "\n")
+            
+            cred = credentials.Certificate(creds_dict)
+            firebase_admin.initialize_app(cred)
+            
+        # Opción B: Estamos en local (Tu computadora)
+        else:
+            ruta_llave = os.path.join("ClavePrivada", "claveFirebase.json")
+            if os.path.exists(ruta_llave):
+                cred = credentials.Certificate(ruta_llave)
+                firebase_admin.initialize_app(cred)
+            else:
+                st.error("⚠️ No se encontró la llave de Firebase en local ni en la nube.")
+                
     except Exception as e:
-        st.error(f"Error crítico al cargar credenciales de Firebase: {e}")
+        st.error(f"Error crítico al conectar con Firebase: {e}")
 
 db = firestore.client()
 
