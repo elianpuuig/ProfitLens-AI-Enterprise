@@ -6,8 +6,9 @@
 *.db
 *.csv
 *.xlsx
-
+*.pyc
 # Python
 __pycache__/
 venv/
 .venv/
+ClavePrivada/
