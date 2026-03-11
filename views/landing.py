@@ -2,7 +2,7 @@ import streamlit as st
 from services.auth_service import FirebaseAuth
 import base64
 import os
-import streamlit as st
+
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
@@ -150,26 +150,39 @@ st.markdown(f"""
 
     .header-spacer {{ height: 130px; }}
 
+    /* --- ADAPTACIÓN PARA CELULARES (SAMSUNG A56) --- */
     @media (max-width: 768px) {{
-        .nav-bar {{ padding: 10px 20px; }}
-        .nav-links {{ display: none; }}
+        .nav-bar {{
+            width: 95% !important;
+            padding: 8px 15px !important;
+            top: 15px !important;
+        }}
+        .nav-links {{
+            gap: 15px !important; /* Menos espacio entre botones */
+        }}
+        .nav-item {{
+            font-size: 0.75rem !important; /* Texto más chico */
+        }}
+        .nav-cta {{
+            padding: 8px 12px !important;
+            font-size: 0.7rem !important;
+            border-radius: 10px !important;
+        }}
+        .header-spacer {{ height: 100px; }}
     }}
-    </style>
+""", unsafe_allow_html=True)
 
+# --- RENDERIZADO DEL HEADER (LO QUE FALTABA) ---
+stripe_url = st.secrets["stripe"]["checkout_url"]
+
+st.markdown(f"""
     <div class="nav-bar">
-        <a href="#" class="nav-logo">
-            <div style="display: flex; align-items: center; gap: 12px;">
-                <img src="data:image/png;base64,{logo_b64}" width="30">
-                <span style="font-family: 'Plus Jakarta Sans', sans-serif; font-weight: 800; font-size: 1.25rem; color: #fff; letter-spacing: -1px;">
-                    ProfitLens<span style="color: #00ff08;">AI</span>
-                </span>
-            </div>
-        </a>
+        <img src="data:image/png;base64,{logo_b64}" style="height: 35px;">
         <div class="nav-links">
             <a href="#caracteristicas" class="nav-item">Características</a>
             <a href="#precios" class="nav-item">Precios</a>
-            <a href="#contacto" class="nav-item">Soporte</a>
-            <a href="#precios" class="nav-item nav-cta">ACCESO GOLD</a>
+            <a href="#contacto" class="nav-item">Contacto</a>
+            <a href="{stripe_url}" target="_blank" class="nav-cta">Acceso Gold 💎</a>
         </div>
     </div>
     <div class="header-spacer"></div>
@@ -244,6 +257,24 @@ st.markdown(f"""
         .hero-title {{ font-size: 3rem; }}
         .hero-description {{ font-size: 1.1rem; }}
     }}
+    
+    /* --- SOLUCIÓN PARA MÓVILES --- */
+    @media (max-width: 768px) {{
+        .hero-wrapper {{
+            background-position: center !important; /* Centra la imagen */
+            padding: 20px !important;               /* Menos padding para ganar espacio */
+            min-height: 450px !important;           /* Ajusta la altura */
+            background: 
+                linear-gradient(0deg, rgba(5, 5, 5, 0.9) 30%, rgba(5, 5, 5, 0.2) 100%), /* Gradiente vertical para móviles */
+                url('https://images.unsplash.com/photo-1639322537228-f710d846310a?auto=format&fit=crop&w=2000&q=80');
+            background-size: cover;
+        }}
+        
+        .hero-content {{
+            text-align: center !important; /* Centramos el texto en móviles */
+            margin: 0 auto;
+        }}
+    }}
     </style>
     
     <div class="hero-wrapper">
@@ -266,7 +297,18 @@ col1, col2 = st.columns([1.1, 0.9], gap="large")
 
 with col1:
     st.markdown("### 🎥 Mira ProfitLens en acción")
-    st.video("https://www.youtube.com/watch?v=dQw4w9WgXcQ") 
+    # Insertalo justo después del título o en la sección de héroe
+    # --- LOGICA DEL VIDEO BLINDADA ---
+    video_path = "static/promo_video.mp4"
+
+    if os.path.exists(video_path):
+        if 'video_visto' not in st.session_state:
+            st.video(video_path, autoplay=True, muted=True)
+            st.session_state.video_visto = True
+        else:
+            st.video(video_path, autoplay=False)
+    else:
+        st.error(f"⚠️ Error: No se encuentra el video en {video_path}")
     st.markdown("""
         <p style='opacity: 0.7; font-size: 0.9rem; margin-top: 15px;'>
             Descubre cómo nuestra IA analiza miles de filas de datos en segundos para darte 
@@ -295,10 +337,11 @@ with col2:
                                 # Guardamos los datos críticos primero.
                                 st.session_state.user_info = user
                                 
-                                # 3. Verificamos suscripción por separado para que no rompa el login
+                                # 3. Verificamos suscripción con el email (nombre de función correcto)
                                 try:
-                                    st.session_state.is_subscribed = auth.check_gold_status(user['localId'])
-                                except:
+                                    # Usamos 'email' porque tu auth_service pide el correo, no el ID
+                                    st.session_state.is_subscribed = auth.consultar_suscripcion(email)
+                                except Exception as e:
                                     st.session_state.is_subscribed = False # Default si falla la DB
                                 
                                 # 4. Marcamos como logueado y reiniciamos
@@ -329,9 +372,66 @@ with col2:
   
   
   
- # --- SECCIÓN DE PRECIOS EVOLUCIONADA ---
+# --- SECCIÓN: PITCH DE VENTA ELITE (CORREGIDO) ---
+  
+# --- 1. DEFINICIÓN DE ESTILOS (EL "STYLE") ---
+pitch_style = """
+<style>
+    .pitch-container { margin: 80px 0; padding: 0 15px; }
+    .pitch-title { 
+        font-family: 'Plus Jakarta Sans', sans-serif; 
+        font-size: 3.2rem; font-weight: 800; line-height: 1.1; 
+        color: white; margin-bottom: 45px; letter-spacing: -1.5px; 
+    }
+    .pitch-border-box { border-left: 3px solid #00ff08; padding-left: 35px; max-width: 850px; }
+    .pitch-text-gray { font-size: 1.2rem; color: #b0b0b0; line-height: 1.8; margin-bottom: 25px; }
+    .pitch-text-white { font-size: 1.25rem; color: white; line-height: 1.8; margin-bottom: 25px; }
+    /* Ajuste para móviles (Samsung A56) - Texto a la IZQUIERDA */
+    @media (max-width: 768px) {
+        .pitch-title { 
+            font-size: 2.3rem !important; 
+            text-align: left !important; /* Forzamos izquierda */
+        }
+        .pitch-border-box { 
+            border-left: 2px solid #00ff08 !important; /* Mantenemos la línea verde fina */
+            padding-left: 20px !important; 
+            text-align: left !important; /* Texto a la izquierda */
+        }
+        .pitch-container { 
+            margin-top: 50px; 
+            margin-bottom: 50px; 
+            padding-left: 10px; /* Margen mínimo para que no pegue al borde */
+        }
+    }
+</style>
+"""
 
+# --- 2. ESTRUCTURA DE LA SECCIÓN (LOS "DIVS") ---
+pitch_html = """
+<div class="pitch-container">
+    <h2 class="pitch-title">
+        Tu negocio no necesita <span style="color: rgba(255,255,255,0.4);">más datos</span>.<br>
+        Necesita <span style="color: #00ff08;">más Claridad</span>.
+    </h2>
+    <div class="pitch-border-box">
+        <p class="pitch-text-gray">
+            En el mercado actual, estar "ciego" ante tus propios números es el camino más rápido al estancamiento. 
+            Mientras tu competencia pierde horas en planillas obsoletas, <b>ProfitLens AI</b> te entrega el mapa del tesoro en tiempo real.
+        </p>
+        <p class="pitch-text-white">
+            <span style="color: #00ff08; font-weight: 800; text-transform: uppercase; font-size: 0.85rem; letter-spacing: 2px;">La Ventaja Competitiva:</span><br>
+            Identificamos el 20% de stock que genera el 80% de tus ingresos y proyectamos tu crecimiento con modelos de <b>Forecast de última generación</b>.
+        </p>
+        <p class="pitch-text-gray">
+            Llevá tu visión desde <b>Puerto Madryn</b> al mundo. Dejá de adivinar el futuro. <b>Construilo con el Nivel Gold.</b>
+        </p>
+    </div>
+</div>
+"""
 
+# --- 3. RENDERIZADO SEGURO ---
+st.markdown(pitch_style, unsafe_allow_html=True)
+st.markdown(pitch_html, unsafe_allow_html=True)
 
 # --- SECCIÓN DE PRECIOS EVOLUCIONADA (CORREGIDA Y RESPONSIVA) ---
 st.write("---")
