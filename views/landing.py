@@ -50,7 +50,12 @@ def enviar_correo_real(nombre, remitente, mensaje_cuerpo):
     
     
     
-    
+st.set_page_config(
+    page_title="ProfitLens AI | Business Intelligence & IA Gold",
+    page_icon="💎",
+    layout="wide"
+)
+
     
 # --- HEADER ELITE (GLASSMORPHISM & FLOATING DESIGN) ---
 logo_b64 = get_base64_logo("static/profitlogo.png")
@@ -423,7 +428,7 @@ pitch_html = """
             Identificamos el 20% de stock que genera el 80% de tus ingresos y proyectamos tu crecimiento con modelos de <b>Forecast de última generación</b>.
         </p>
         <p class="pitch-text-gray">
-            Llevá tu visión desde <b>Puerto Madryn</b> al mundo. Dejá de adivinar el futuro. <b>Construilo con el Nivel Gold.</b>
+            Llevá tu visión desde <b>ProfitLens AI</b> al mundo. Dejá de adivinar el futuro. <b>Construilo con el Nivel Gold.</b>
         </p>
     </div>
 </div>
